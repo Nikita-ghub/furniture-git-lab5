@@ -120,3 +120,8 @@ python3 scripts/check_scenarios.py
 ## Версии
 
 В этой сборке: .NET SDK 10.0.403, ASP.NET Core 10.0.14, EF Core 10.0.14, Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3, PostgreSQL 18.4. Пакеты EF и провайдера совместимы; номера исправлений у разных поставщиков не обязаны совпадать.
+
+## Модульные тесты NUnit
+
+Из корня проекта выполните `dotnet test Furniture.slnx`.
+Тесты проверяют выбор замерщика. Для их запуска PostgreSQL и веб-сервисы не нужны.
