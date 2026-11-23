@@ -1,0 +1,8 @@
+.tools/
+.local/
+**/bin/
+**/obj/
+.env
+*.user
+.DS_Store
+__pycache__/

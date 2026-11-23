@@ -1,0 +1,807 @@
+{
+  "info": {
+    "name": "Мебельное производство - ЛР 3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Три сервиса, две базы PostgreSQL. Запускайте коллекцию целиком по порядку. Первый запуск рассчитан на базу с одним bootstrap-администратором; повторный возможен, если все ранее созданные замерщики заняты."
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{adminLogin}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{adminPassword}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) pm.collectionVariables.set('runId', Date.now().toString());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Работает сервис: Сотрудники",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/health",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Работает сервис: Заказы",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/health",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Работает сервис: Сводные данные",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{summaryUrl}}/health",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Без авторизации доступ запрещён",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/api/employees",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Текущий администратор",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/api/auth/me"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('runId', Date.now().toString());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const e = pm.response.json(); pm.collectionVariables.set('adminId', e.id); pm.collectionVariables.set('adminName', e.fullName);",
+              "pm.test('Хеш не возвращается', () => pm.expect(e).not.to.have.property('passwordHash'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Создать клиента",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/clients",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Иван Петров\",\n  \"phone\": \"+79001234567\",\n  \"email\": \"ivan@example.com\",\n  \"defaultAddress\": \"Владимир, улица Мира, 10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('clientId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Получить клиента",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/api/clients/{{clientId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Изменить клиента",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/clients/{{clientId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Иван Петров\",\n  \"phone\": \"+79007654321\",\n  \"email\": \"ivan@example.com\",\n  \"defaultAddress\": \"Владимир, улица Мира, 10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Телефон изменён', () => pm.expect(pm.response.json().phone).to.eql('+79007654321'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: свободного замерщика нет",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"executionAddress\": \"Владимир, улица Мира, 10\",\n  \"description\": \"Шкаф по индивидуальному заказу\",\n  \"customerWishes\": \"Светлая мебель\",\n  \"plannedCompletionDate\": \"2026-12-15T12:00:00Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const b = JSON.parse(pm.request.body.raw); b.clientId = Number(pm.collectionVariables.get('clientId')); pm.request.body.update(JSON.stringify(b));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const r = pm.response.json(); pm.collectionVariables.set('waitingOrderId', r.order.id);",
+              "pm.test('Заказ остаётся New', () => pm.expect(r.order.status).to.eql('New'));",
+              "pm.test('Этап ожидает исполнителя', () => pm.expect(r.order.stages[0].status).to.eql('WaitingForAssignee'));",
+              "pm.test('Назначения нет', () => {pm.expect(r.measurerAssigned).to.eql(false); pm.expect(r.order.assignments).to.have.lengthOf(0);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Создать замерщика",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{employeesUrl}}/api/employees",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Пётр Замерщиков\",\n  \"phone\": \"+79001112233\",\n  \"roles\": [\n    \"Measurer\"\n  ],\n  \"login\": \"measurer_{{runId}}\",\n  \"password\": \"DemoMeasurer2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const e = pm.response.json(); pm.collectionVariables.set('measurerId', e.id);",
+              "pm.test('Роли - набор', () => pm.expect(e.roles).to.eql(['Measurer']));",
+              "pm.test('Пароль и хеш скрыты', () => {pm.expect(e).not.to.have.property('password'); pm.expect(e).not.to.have.property('passwordHash');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Логин должен быть уникален",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{employeesUrl}}/api/employees",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Пётр Замерщиков\",\n  \"phone\": \"+79001112233\",\n  \"roles\": [\n    \"Measurer\"\n  ],\n  \"login\": \"measurer_{{runId}}\",\n  \"password\": \"DemoMeasurer2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Изменить контакты сотрудника",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{employeesUrl}}/api/employees/{{measurerId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Пётр Иванович Замерщиков\",\n  \"phone\": \"+79001114455\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Имя изменено', () => pm.expect(pm.response.json().fullName).to.eql('Пётр Иванович Замерщиков'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Получить сотрудника",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/api/employees/{{measurerId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Получить сотрудников",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/api/employees"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Замерщик не может создавать клиентов",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/clients",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Иван Петров\",\n  \"phone\": \"+79007654321\",\n  \"email\": \"ivan@example.com\",\n  \"defaultAddress\": \"Владимир, улица Мира, 10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "measurer_{{runId}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "DemoMeasurer2026!",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: назначить замерщика",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"executionAddress\": \"Владимир, улица Мира, 10\",\n  \"description\": \"Шкаф по индивидуальному заказу\",\n  \"customerWishes\": \"Светлая мебель\",\n  \"plannedCompletionDate\": \"2026-12-15T12:00:00Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const b = JSON.parse(pm.request.body.raw); b.clientId = Number(pm.collectionVariables.get('clientId')); pm.request.body.update(JSON.stringify(b));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const r = pm.response.json(); pm.collectionVariables.set('assignedOrderId', r.order.id);",
+              "pm.test('Заказ перешёл к замеру', () => pm.expect(r.order.status).to.eql('MeasurementAndApproval'));",
+              "pm.test('Назначен созданный замерщик', () => pm.expect(r.measurerId).to.eql(Number(pm.collectionVariables.get('measurerId'))));",
+              "pm.test('Этап назначен', () => pm.expect(r.order.stages[0].status).to.eql('Assigned'));",
+              "pm.test('Ответственный - текущий администратор', () => pm.expect(r.order.responsibleAdministratorId).to.eql(Number(pm.collectionVariables.get('adminId'))));",
+              "pm.test('Назначение и смена статуса в истории', () => {pm.expect(r.order.history.map(h => h.action)).to.include('MeasurerAssigned'); pm.expect(r.order.history.map(h => h.action)).to.include('OrderStatusChanged');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Получить карточку заказа",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/api/orders/{{assignedOrderId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Одна связь назначения с этапом', () => {const o=pm.response.json();pm.expect(o.assignments).to.have.lengthOf(1);pm.expect(o.assignments[0].orderStageId).to.eql(o.stages[0].id);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: замерщик уже занят",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"executionAddress\": \"Владимир, улица Мира, 10\",\n  \"description\": \"Шкаф по индивидуальному заказу\",\n  \"customerWishes\": \"Светлая мебель\",\n  \"plannedCompletionDate\": \"2026-12-15T12:00:00Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const b = JSON.parse(pm.request.body.raw); b.clientId = Number(pm.collectionVariables.get('clientId')); pm.request.body.update(JSON.stringify(b));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const r=pm.response.json();pm.test('Повторное назначение занятому запрещено',()=>{pm.expect(r.order.status).to.eql('New');pm.expect(r.order.assignments).to.have.lengthOf(0);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Изменить адрес клиента после заказа",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/clients/{{clientId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Иван Петров\",\n  \"phone\": \"+79007654321\",\n  \"email\": \"ivan@example.com\",\n  \"defaultAddress\": \"Владимир, другой адрес, 20\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Адрес заказа сохраняется",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/api/orders/{{assignedOrderId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Адрес не зависит от клиента', () => pm.expect(pm.response.json().executionAddress).to.eql('Владимир, улица Мира, 10'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Получить список заказов",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/api/orders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('orderCount',pm.response.json().length);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Сводный список с именами администраторов",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{summaryUrl}}/api/summary/orders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const list=pm.response.json();",
+              "pm.test('Сводка содержит все заказы',()=>pm.expect(list.length).to.eql(Number(pm.collectionVariables.get('orderCount'))));",
+              "pm.test('Имя получено из сервиса сотрудников',()=>pm.expect(list.find(o=>o.id===Number(pm.collectionVariables.get('assignedOrderId'))).responsibleAdministratorName).to.eql(pm.collectionVariables.get('adminName')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Количество заказов по статусам",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{summaryUrl}}/api/summary/statistics"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const list=pm.response.json();",
+              "pm.test('Все девять статусов',()=>pm.expect(list).to.have.lengthOf(9));",
+              "pm.test('Сумма совпадает с числом заказов',()=>pm.expect(list.reduce((s,x)=>s+x.count,0)).to.eql(Number(pm.collectionVariables.get('orderCount'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Несуществующий заказ",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{ordersUrl}}/api/orders/2147483647"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Несуществующий сотрудник",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{employeesUrl}}/api/employees/2147483647"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Проверка обязательных полей",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/clients",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Неверный клиент: заказ не создаётся",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{ordersUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"clientId\": 2147483647,\n  \"executionAddress\": \"Владимир, улица Мира, 10\",\n  \"description\": \"Шкаф по индивидуальному заказу\",\n  \"customerWishes\": \"Светлая мебель\",\n  \"plannedCompletionDate\": \"2026-12-15T12:00:00Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

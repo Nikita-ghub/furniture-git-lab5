@@ -1,0 +1,404 @@
+{
+  "date": "2026-10-28",
+  "runner": "Newman 6.2.3 (Postman collection runner)",
+  "statistics": {
+    "iterations": {
+      "total": 1,
+      "pending": 0,
+      "failed": 0
+    },
+    "items": {
+      "total": 27,
+      "pending": 0,
+      "failed": 0
+    },
+    "scripts": {
+      "total": 58,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequests": {
+      "total": 27,
+      "pending": 0,
+      "failed": 0
+    },
+    "requests": {
+      "total": 27,
+      "pending": 0,
+      "failed": 0
+    },
+    "tests": {
+      "total": 27,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 47,
+      "pending": 0,
+      "failed": 0
+    },
+    "testScripts": {
+      "total": 27,
+      "pending": 0,
+      "failed": 0
+    },
+    "prerequestScripts": {
+      "total": 31,
+      "pending": 0,
+      "failed": 0
+    }
+  },
+  "failures": 0,
+  "requests": [
+    {
+      "name": "Работает сервис: Сотрудники",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Работает сервис: Заказы",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Работает сервис: Сводные данные",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Без авторизации доступ запрещён",
+      "status": 401,
+      "checks": [
+        {
+          "name": "HTTP 401",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Текущий администратор",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Хеш не возвращается",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Создать клиента",
+      "status": 201,
+      "checks": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Получить клиента",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Изменить клиента",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Телефон изменён",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: свободного замерщика нет",
+      "status": 201,
+      "checks": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Заказ остаётся New",
+          "passed": true
+        },
+        {
+          "name": "Этап ожидает исполнителя",
+          "passed": true
+        },
+        {
+          "name": "Назначения нет",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Создать замерщика",
+      "status": 201,
+      "checks": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Роли - набор",
+          "passed": true
+        },
+        {
+          "name": "Пароль и хеш скрыты",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Логин должен быть уникален",
+      "status": 409,
+      "checks": [
+        {
+          "name": "HTTP 409",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Изменить контакты сотрудника",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Имя изменено",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Получить сотрудника",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Получить сотрудников",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Замерщик не может создавать клиентов",
+      "status": 403,
+      "checks": [
+        {
+          "name": "HTTP 403",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: назначить замерщика",
+      "status": 201,
+      "checks": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Заказ перешёл к замеру",
+          "passed": true
+        },
+        {
+          "name": "Назначен созданный замерщик",
+          "passed": true
+        },
+        {
+          "name": "Этап назначен",
+          "passed": true
+        },
+        {
+          "name": "Ответственный - текущий администратор",
+          "passed": true
+        },
+        {
+          "name": "Назначение и смена статуса в истории",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Получить карточку заказа",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Одна связь назначения с этапом",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Создать заказ: замерщик уже занят",
+      "status": 201,
+      "checks": [
+        {
+          "name": "HTTP 201",
+          "passed": true
+        },
+        {
+          "name": "Повторное назначение занятому запрещено",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Изменить адрес клиента после заказа",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Адрес заказа сохраняется",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Адрес не зависит от клиента",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Получить список заказов",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Сводный список с именами администраторов",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Сводка содержит все заказы",
+          "passed": true
+        },
+        {
+          "name": "Имя получено из сервиса сотрудников",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Количество заказов по статусам",
+      "status": 200,
+      "checks": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Все девять статусов",
+          "passed": true
+        },
+        {
+          "name": "Сумма совпадает с числом заказов",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Несуществующий заказ",
+      "status": 404,
+      "checks": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Несуществующий сотрудник",
+      "status": 404,
+      "checks": [
+        {
+          "name": "HTTP 404",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Проверка обязательных полей",
+      "status": 400,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Неверный клиент: заказ не создаётся",
+      "status": 400,
+      "checks": [
+        {
+          "name": "HTTP 400",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}
